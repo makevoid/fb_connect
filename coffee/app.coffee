@@ -7,6 +7,7 @@ fb_init = ->
 
 class FbComments
   constructor: (@urls) ->
+    console.log "initializing fbcomments"
     @comments = []
     @callback = null
 
