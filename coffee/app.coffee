@@ -46,13 +46,34 @@ class FbComments
 $ ->
 
   $("body").bind "page_loaded", ->
-
+    
     window.fbAsyncInit = ->
       fb_init()
       
+      host = "localhost:3000"
+      host = "http://#{host}"
+      
+      FB.Event.subscribe 'comment.create', (comm) ->
+        id = comm.commentID
+        url = comm.href
+        console.log "created comment:", resp
+        $.post "#{host}/comments", { comment_id: id, url: url }, (data) ->
+          console.log "comment inserted", data
+        
+      FB.Event.subscribe 'comment.remove', (comm) ->
+        id = comm.commentID
+        url = comm.href
+        console.log "deleted comment:", resp
+        $.ajax { 
+          url: "#{host}/comments", 
+          type: 'delete', 
+          success: (data) ->
+            console.log "comment deleted", data            
+        }
+          
+
+      
       FB.getLoginStatus (response) ->  
-        console.log "lol?"
-        console.log response.status
         if response.status == "connected"
           $(".nav_right").append "Logged in as user: #{response.session.uid}"
         else
@@ -70,8 +91,6 @@ $ ->
     ) document
   
   $("body").bind "page_js_loaded", ->
-    
-  
     fb_init()
   
   
