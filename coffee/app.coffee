@@ -1,3 +1,13 @@
+# config:
+
+fbcomments_host = "localhost:3000"
+fbcomments_host = "http://#{fbcomments_host}"
+
+blog_name = "localhost:3001"
+
+# 
+
+
 fb_init = ->
   FB.init
     appId: "204625772947506"
@@ -5,31 +15,47 @@ fb_init = ->
     cookie: true
     xfbml: true
 
+console.log "loading fbcomments"
+
 class FbComments
-  constructor: (@urls) ->
+  
+  constructor: (@blog) ->
     console.log "initializing fbcomments"
     @comments = []
     @callback = null
 
 
-  fetch: ->
+  fetch_from_fb: (callback) ->
     for url in @urls
       $.getJSON this.graph_url(url), (comments) =>
+        console.log "fetched ", comments, " from: ", this.graph_url(url)
         comments_data = _(comments).values()[0].data
         for comment in comments_data
           # console.log comment
-          comment_html = "
-            <div class='fbc_comment'>
-              <fb:profile-pic uid='#{comment.from.id}' linked='true'></fb:profile-pic>
-              <div class='fbc_from'>#{comment.from.name}</div>
-              <div class='fbc_message'>#{comment.message}</div>
-            </div>
-          "
-          this.fetched comment_html
+          this.fetched this.comment_html_fb(comment)
+    callback()
   
   latest: (callback) ->
-    this.fetch()
-    @callback = callback if callback
+    $.getJSON "#{fbcomments_host}/blog/#{@blog}/comments", (comments) =>
+      console.log "got comments: ", comments
+      for comment in comments
+        comment = this.comment_html comment
+        @comments.push comment
+      this.render()
+      
+  # latest: (callback) ->
+  #   post_url = "http://localhost:3001/page1"
+  #   post_url = encodeURIComponent post_url
+  #   $.getJSON "#{fbcomments_host}/comments/#{post_url}", (comments) =>
+  #     console.log "got comments: ", comments
+  #     for comment in comments
+  #       comment = this.comment_html comment
+  #       @comments.push comment
+  #     this.render()    
+  
+  latest_from_fb: (callback) ->
+    this.fetch_from_fb ->
+      @callback = callback if callback
     
   fetched: (comment) ->
     @comments.push comment
@@ -42,36 +68,68 @@ class FbComments
   graph_url: (url) ->
     "https://graph.facebook.com/comments/?ids=#{url}"
 
+  # views:
+  
+  
+  comment_html: (c) ->
+    "
+    <div class='fbc_comment'>
+      <fb:profile-pic uid='#{c.user_id}' linked='true'></fb:profile-pic>
+      <div class='fbc_from'>
+          <fb:name uid='#{c.user_id}' linked='true'></fb:name>
+      </div>
+      <div class='fbc_message'>#{c.text}</div>
+        <div class='fbc_post'>
+          commented on <a href='#{c.post.url}'>#{c.post.name}</a>
+        </div>
+      </div>
+    </div>"
+    
+  comment_html_fb: (comment) ->
+    "
+    <div class='fbc_comment'>
+      <fb:profile-pic uid='#{comment.from.id}' linked='true'></fb:profile-pic>
+      <div class='fbc_from'>#{comment.from.name}</div>
+      <div class='fbc_message'>#{comment.message}</div>
+    </div>"
+
+
+##
+    
+
+fbc_subscribe = (comm) ->
+  id = comm.commentID
+  url = encodeURIComponent comm.href
+  text = "blabla"
+  console.log "comment post: ", comm
+  
+  $.post "#{fbcomments_host}/comments/#{url}", { fb_id: id, text: text, blog: blog_name }, (data) ->
+    console.log "comment inserted", data
 
 $ ->
+
+
+
 
   $("body").bind "page_loaded", ->
     
     window.fbAsyncInit = ->
       fb_init()
       
-      host = "localhost:3000"
-      host = "http://#{host}"
       
       FB.Event.subscribe 'comment.create', (comm) ->
-        id = comm.commentID
-        url = comm.href
-        console.log "created comment:", resp
-        $.post "#{host}/comments", { comment_id: id, url: url }, (data) ->
-          console.log "comment inserted", data
+        fbc_subscribe comm
         
       FB.Event.subscribe 'comment.remove', (comm) ->
         id = comm.commentID
         url = comm.href
         console.log "deleted comment:", resp
         $.ajax { 
-          url: "#{host}/comments", 
+          url: "#{fbcomments_host}/comments", 
           type: 'delete', 
           success: (data) ->
             console.log "comment deleted", data            
         }
-          
-
       
       FB.getLoginStatus (response) ->  
         if response.status == "connected"
@@ -98,9 +156,9 @@ $ ->
   # 
   
   home_page = ->
-    urls = ["http://d.makevoid.com:3000/page1", "http://d.makevoid.com:3000/page2"]
-    fb_comments = new FbComments urls
-    comments = fb_comments.latest ->
+    fb_comments = new FbComments blog_name
+    comments = fb_comments.latest  ->
+      console.log fb_comments
       fb_init()
     
     
