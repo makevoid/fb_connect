@@ -76,12 +76,9 @@ class FbComments
     <div class='fbc_comment'>
       <fb:profile-pic uid='#{c.user_id}' linked='true'></fb:profile-pic>
       <div class='fbc_from'>
-          <fb:name uid='#{c.user_id}' linked='true'></fb:name>
+          <fb:name uid='#{c.user_id}' linked='true'></fb:name> commented on <a href='#{c.post.url}'>#{c.post.name}</a> (sul blog generale:) in TITOLO_BLOG
       </div>
       <div class='fbc_message'>#{c.text}</div>
-        <div class='fbc_post'>
-          commented on <a href='#{c.post.url}'>#{c.post.name}</a>
-        </div>
       </div>
     </div>"
     
