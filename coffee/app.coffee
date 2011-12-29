@@ -113,7 +113,6 @@ $ ->
     window.fbAsyncInit = ->
       fb_init()
       
-      
       FB.Event.subscribe 'comment.create', (comm) ->
         fbc_subscribe comm
         
@@ -153,11 +152,12 @@ $ ->
   # 
   
   home_page = ->
-    fb_comments = new FbComments blog_name
-    comments = fb_comments.latest  ->
-      console.log fb_comments
-      fb_init()
-    
+    fbcomm = new FbComments blog_name
+    comments = fbcomm.latest  ->
+      console.log fbcomm
+      # fb_init()    
+    # fb_init()
+    # fbcomm.fetch_from_fb()
     
   
   $("body").bind "page_loaded", ->
