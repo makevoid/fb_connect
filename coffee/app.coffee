@@ -36,7 +36,7 @@ class FbComments
     callback()
   
   latest: (callback) ->
-    $.getJSON "#{fbcomments_host}/blog/#{@blog}/comments", (comments) =>
+    $.getJSON "#{fbcomments_host}/blogs/#{@blog}/comments", (comments) =>
       console.log "got comments: ", comments
       for comment in comments
         comment = this.comment_html comment
@@ -94,14 +94,7 @@ class FbComments
 ##
     
 
-fbc_subscribe = (comm) ->
-  id = comm.commentID
-  url = encodeURIComponent comm.href
-  text = "blabla"
-  console.log "comment post: ", comm
-  
-  $.post "#{fbcomments_host}/comments/#{url}", { fb_id: id, text: text, blog: blog_name }, (data) ->
-    console.log "comment inserted", data
+
 
 $ ->
 
@@ -113,19 +106,30 @@ $ ->
     window.fbAsyncInit = ->
       fb_init()
       
-      FB.Event.subscribe 'comment.create', (comm) ->
-        fbc_subscribe comm
-        
-      FB.Event.subscribe 'comment.remove', (comm) ->
-        id = comm.commentID
-        url = comm.href
-        console.log "deleted comment:", resp
-        $.ajax { 
-          url: "#{fbcomments_host}/comments", 
-          type: 'delete', 
-          success: (data) ->
-            console.log "comment deleted", data            
-        }
+      # cool but no
+      #
+      # fbc_subscribe = (comm) ->
+      #   id = comm.commentID
+      #   url = encodeURIComponent comm.href
+      #   text = "blabla"
+      #   console.log "comment post: ", comm
+      # 
+      #   $.post "#{fbcomments_host}/comments/#{url}", { fb_id: id, text: text, blog: blog_name }, (data) ->
+      #     console.log "comment inserted", data
+      #
+      # FB.Event.subscribe 'comment.create', (comm) ->
+      #   fbc_subscribe comm
+      #   
+      # FB.Event.subscribe 'comment.remove', (comm) ->
+      #   id = comm.commentID
+      #   url = comm.href
+      #   console.log "deleted comment:", resp
+      #   $.ajax { 
+      #     url: "#{fbcomments_host}/comments", 
+      #     type: 'delete', 
+      #     success: (data) ->
+      #       console.log "comment deleted", data            
+      #   }
       
       FB.getLoginStatus (response) ->  
         if response.status == "connected"
